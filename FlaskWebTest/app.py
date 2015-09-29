@@ -3,6 +3,7 @@ import json
 from Crypto.Cipher import AES
 from Crypto import Random
 import base64
+from binascii import unhexlify, hexlify
 
 app = Flask(__name__)
 
@@ -51,12 +52,16 @@ def recieve_and_encrypt():
 def recieve_and_decrypt():
     json_message = request.get_json(force=True)
     dict['ciphertext_iv'] = json_message['message']
+    
+    if json_message.get('key', None) is not None:
+        aeshandler.key = unhexlify(json_message['key'])
+
     dict['plaintext'] = aeshandler.decrypt(dict['ciphertext_iv'])
     return dict['plaintext']
 
 @app.route('/key')
 def show_key():
-    return base64.b64encode(aeshandler.key)
+    return hexlify(aeshandler.key)
 
 @app.route('/iv')
 def show_iv():
